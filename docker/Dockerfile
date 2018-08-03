@@ -42,6 +42,7 @@ RUN set -xe                                                                 && \
         mosquitto~${VERSION} \
         mosquitto-libs~${VERSION} \
         mosquitto-clients~${VERSION} \
+        ca-certificates \
         pwgen \
         su-exec \
         tzdata \
