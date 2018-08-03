@@ -50,4 +50,3 @@ docker run --name mqtt -p 1883:1883 -v $(pwd)/datadir:/mqtt -e MQTT_PERSISTENCE=
 # Author
 
 Jose Riguera `<jriguera@gmail.com>`
-# docker-rpi-mosquitto
