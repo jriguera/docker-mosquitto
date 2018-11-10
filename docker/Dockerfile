@@ -1,9 +1,12 @@
-FROM arm32v6/alpine:3.8
+# Mosquitto Docker
 
 # docker build . -t mosquitto
 # docker run --name mosquitto -v $(pwd)/datadir:/mqtt  mosquitto
 
-ARG VERSION=1.4
+ARG ARCH=arm32v6
+FROM "${ARCH}/alpine:3.8"
+
+ARG VERSION=1.4.15-r3
 ARG MYVERSION=jose2
 ARG DATADIR=/mqtt
 ARG CONFIGDIR=/config
@@ -11,7 +14,8 @@ ARG DEFAULTPORT=1883
 ARG TLSPORT=8883
 ARG UID=1000
 ARG GUID=1000
-ARG TIMEZONE=Europe/Amsterdam
+ARG TZ=Europe/Amsterdam
+ARG ARCH
 
 LABEL org.label-schema.description="Mosquitto Docker image based on Alpine for the Raspberry Pi."
 LABEL org.label-schema.name="rpi-mosquitto"
@@ -20,7 +24,7 @@ LABEL org.label-schema.usage="/README.md"
 LABEL org.label-schema.url="https://hub.docker.com/r/jriguera/rpi-mosquitto"
 LABEL org.label-schema.vcs-url="https://github.com/jriguera/docker-rpi-mosquitto"
 LABEL maintainer="Jose Riguera <jriguera@gmail.com>"
-LABEL architecture="ARM32v7/armhf"
+LABEL architecture="${ARCH}"
 
 ENV MQTT_PATH="${DATADIR}"
 ENV MQTT_CONFIG="${CONFIGDIR}"
@@ -52,8 +56,8 @@ RUN set -xe                                                                 && \
         bash \
                                                                             && \
     # Timezone
-    cp "/usr/share/zoneinfo/${TIMEZONE}" /etc/localtime                     && \
-    echo "${TIMEZONE}" > /etc/timezone                                      && \
+    cp "/usr/share/zoneinfo/${TZ}" /etc/localtime                           && \
+    echo "${TZ}" > /etc/timezone                                            && \
     # clean up
     rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/* /etc/mosquitto/*
 
