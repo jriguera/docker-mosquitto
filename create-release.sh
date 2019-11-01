@@ -13,8 +13,8 @@ GITHUB_REPO="jriguera/docker-rpi-mosquitto"
 
 ###
 
-DOCKER=docker
-JQ=jq
+DOCKER="docker"
+JQ="jq"
 CURL="curl -s"
 RE_VERSION_NUMBER='^[0-9]+([0-9\.]*[0-9]+)*$'
 
@@ -23,7 +23,7 @@ RE_VERSION_NUMBER='^[0-9]+([0-9\.]*[0-9]+)*$'
 ARCH=""
 case "$(uname -m)" in
     armv7l)
-	ARCH='arm32v6'
+        ARCH='arm32v6'
     ;;
     x86_64|amd64)
         ARCH='amd64'
@@ -161,14 +161,21 @@ Given the docker image with name `mosquitto`:
 
 EOF
 )
-printf -v DATA '{"tag_name": "v%s","target_commitish": "master","name": "v%s","body": %s,"draft": false, "prerelease": false}' "$VERSION" "$VERSION" "$(echo "$DESC" | $JQ -R -s '@text')"
-$CURL -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -XPOST --data "$DATA" "https://api.github.com/repos/$GITHUB_REPO/releases" > /dev/null
-
-git fetch --tags
+printf -v data '{"tag_name": "v%s","target_commitish": "master","name": "v%s","body": %s,"draft": false, "prerelease": false}' "$VERSION" "$VERSION" "$(echo "$DESC" | $JQ -R -s '@text')"
+releaseid=$($CURL -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/json" -XPOST --data "$data" "https://api.github.com/repos/$GITHUB_REPO/releases" | $JQ '.id')
+# Upload the release
+echo "* Uploading image to Github releases section ... "
+echo -n "  URL: "
+$CURL -H "Authorization: token $GITHUB_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @"/tmp/$NAME-$VERSION.tgz" "https://uploads.github.com/repos/$GITHUB_REPO/releases/$releaseid/assets?name=$NAME-$VERSION.tgz" | $JQ -r '.browser_download_url'
 
 echo
 echo "*** Description https://github.com/$GITHUB_REPO/releases/tag/v$VERSION: "
 echo
 echo "$DESC"
 
+# Delete the release
+rm -f "/tmp/$NAME-$VERSION.tgz"
+git fetch --tags
+
 exit 0
+
