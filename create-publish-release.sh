@@ -85,7 +85,7 @@ then
     exit 1
 fi
 
-DOCKER_USER=$(docker info 2> /dev/null  | sed -ne 's/^Username: \(.*\)/\1/p')
+DOCKER_USER=$(docker info 2> /dev/null  | sed -ne 's/Username: \(.*\)/\1/p')
 if [ -z "$DOCKER_USER" ]
 then
     echo "ERROR: Not logged in Docker Hub!"
@@ -135,6 +135,8 @@ pushd docker
     $DOCKER push $DOCKER_TAG
     $DOCKER tag $NAME $DOCKER_TAG:$VERSION
     $DOCKER push $DOCKER_TAG
+
+    $DOCKER save -o "/tmp/$NAME-$VERSION.tgz" $DOCKER_TAG:$VERSION
 popd
 
 # Create annotated tag
@@ -155,7 +157,7 @@ $CHANGELOG
 
 ## Using it
 
-Given the docker image with name `mosquitto`:
+Given the docker image with name 'mosquitto':
 
     docker run --name mqtt -p 1883:1883 -v $(pwd)/datadir:/mqtt -e MQTT_PERSISTENCE=false -e MQTT_USER=micasa -e MQTT_PASSWORD=home -d jriguera/mosquitto
 
