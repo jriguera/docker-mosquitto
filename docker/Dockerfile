@@ -7,7 +7,7 @@ ARG ARCH=arm32v6
 FROM "${ARCH}/alpine:3.10"
 
 ARG VERSION=1.6
-ARG MYVERSION=jose0
+ARG MYVERSION=jose1
 ARG DATADIR=/mqtt
 ARG CONFIGDIR=/config
 ARG DEFAULTPORT=1883
@@ -76,7 +76,7 @@ RUN set -xe                                                                 && \
     touch /etc/mosquitto/users                                              && \
     chown -R mosquitto:mosquitto /etc/mosquitto "${DATADIR}" "${CONFIGDIR}"
 
-VOLUME ["${CONFIGDIR}", "${DATADIR}"]
+VOLUME "${CONFIGDIR}" "${DATADIR}"
 EXPOSE "${DEFAULTPORT}" "${TLSPORT}"
 
 ENTRYPOINT ["/run.sh"]
