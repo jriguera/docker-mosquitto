@@ -4,10 +4,10 @@
 # docker run --name mosquitto -v $(pwd)/datadir:/mqtt  mosquitto
 
 ARG ARCH=arm32v6
-FROM "${ARCH}/alpine:3.10"
+FROM "${ARCH}/alpine:3.11"
 
 ARG VERSION=1.6
-ARG MYVERSION=jose1
+ARG MYVERSION=jose2
 ARG DATADIR=/mqtt
 ARG CONFIGDIR=/config
 ARG DEFAULTPORT=1883
