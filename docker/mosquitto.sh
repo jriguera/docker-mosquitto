@@ -3,12 +3,13 @@ set -eo pipefail
 
 # Defined in the Dockerfile but
 # if undefined, populate environment variables with sane defaults
-MQTT_PATH=${MQTT_PATH:-/mtqq}
+MQTT_PATH=${MQTT_PATH:-/mqtt}
+MQTT_PATH_DATA=${MQTT_PATH_DATA:-$MQTT_PATH/data}
 MQTT_CONFIG=${MQTT_CONFIG:-/config}
 MQTT_LOG=${MQTT_LOG:-stdout}
 MQTT_PERSISTENCE=${MQTT_PERSISTENCE:-true}
 MQTT_PORT_DEFAULT=${MQTT_PORT_DEFAULT:-1883}
-MQTT_ADDRESS=${MQTT_ADDRESS:-}
+MQTT_ADDRESS=${MQTT_ADDRESS:-0.0.0.0}
 MQTT_USER=${MQTT_USER:-""}
 MQTT_PASSWORD=${MQTT_PASSWORD:-""}
 MQTT_USERS_FILE=/etc/mosquitto/users
@@ -56,13 +57,6 @@ file_env() {
 	export "${var}"="${val}"
 }
 
-# allow the container to be started with `--user`
-if [ "${1}" == "mosquitto" ] && [ "${HELP}" == "0" ] && [ "$(id -u)" == "0" ]
-then
-	chown -R mosquitto:mosquitto "${MQTT_PATH}" "${MQTT_CONFIG}"
-	exec su-exec mosquitto "${BASH_SOURCE}" "$@"
-fi
-
 # if no configfile is provided, generate one based on the environment variables
 if [ -r "${MQTT_CONFIG}/mosquitto.conf" ]
 then
@@ -74,11 +68,8 @@ else
 	touch "${MQTT_USERS_FILE}"
 	sed -ie "s|^log_dest .*\$|log_dest $MQTT_LOG|g" /etc/mosquitto/mosquitto.conf
 	sed -ie "s|^persistence .*\$|persistence $MQTT_PERSISTENCE|g" /etc/mosquitto/mosquitto.conf
-	sed -ie "s|^port .*\$|port $MQTT_PORT_DEFAULT|g" /etc/mosquitto/mosquitto.conf
-	if ! [ -z "${MQTT_ADDRESS}" ]
-	then
-		sed -ie "s|^bind_address .*\$|bind_address $MQTT_ADDRESS|g" /etc/mosquitto/mosquitto.conf
-	fi
+	sed -ie "s|^listen .*\$|listen $MQTT_PORT_DEFAULT $MQTT_ADDRESS|g" /etc/mosquitto/mosquitto.conf
+	sed -ie "s|^persistence_location .*\$|persistence_location $MQTT_PATH_DATA|g" /etc/mosquitto/mosquitto.conf
 	file_env 'MQTT_USER'
 	file_env 'MQTT_PASSWORD'
 	if ! [ -z "${MQTT_USER}" ]
@@ -90,6 +81,8 @@ else
 		sed -ie "s|^allow_anonymous .*\$|allow_anonymous false|g" /etc/mosquitto/mosquitto.conf
 	fi
 fi
+mkdir -p "$MQTT_PATH_DATA"
+chown -R mosquitto:mosquitto "$MQTT_PATH_DATA"
 chown -R mosquitto:mosquitto /etc/mosquitto
 
 exec "$@"
