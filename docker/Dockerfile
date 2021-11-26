@@ -7,7 +7,7 @@ ARG ARCH=arm32v6
 FROM "${ARCH}/alpine:3.15"
 
 ARG VERSION=2.0
-ARG MYVERSION=jose3
+ARG MYVERSION=jose4
 ARG DATADIR=/mqtt
 ARG CONFIGDIR=/config
 ARG DEFAULTPORT=1883
@@ -81,4 +81,4 @@ EXPOSE "${DEFAULTPORT}" "${TLSPORT}"
 
 ENTRYPOINT ["/run.sh"]
 # Define default command
-CMD ["mosquitto"]
+CMD ["mosquitto", "-c", "/etc/mosquitto/mosquitto.conf"]
