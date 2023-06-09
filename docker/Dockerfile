@@ -1,51 +1,66 @@
 # Mosquitto Docker
-
 # docker build . -t mosquitto
 # docker run --name mosquitto -v $(pwd)/datadir:/mqtt  mosquitto
 
-ARG ARCH=arm32v6
-FROM "${ARCH}/alpine:3.11"
+ARG BASE=alpine:3.18
+FROM $BASE
 
-ARG VERSION=1.6
-ARG MYVERSION=jose3
+ARG VERSION=1
+ARG APPVERSION=2.0
+ARG TIME=1970-00-00T00:00:00.00Z
+ARG HASH=undefined
+ARG REPOSITORY="https://github.com/jriguera/docker-mosquitto"
+
 ARG DATADIR=/mqtt
 ARG CONFIGDIR=/config
-ARG DEFAULTPORT=1883
-ARG TLSPORT=8883
+ARG ETCDIR=/etc/mosquitto
+ARG RUNDIR=/run/mosquitto
+ARG PORT=1883
 ARG UID=1000
 ARG GUID=1000
-ARG TZ=Europe/Amsterdam
-ARG ARCH
+ARG TZ=UTC
+ARG USER=mosquitto
+ARG GROUP=mosquitto
 
-LABEL org.label-schema.description="Mosquitto Docker image based on Alpine for the Raspberry Pi."
-LABEL org.label-schema.name="rpi-mosquitto"
-LABEL org.label-schema.version="${VERSION}-${MYVERSION}"
-LABEL org.label-schema.usage="/README.md"
-LABEL org.label-schema.url="https://hub.docker.com/r/jriguera/rpi-mosquitto"
-LABEL org.label-schema.vcs-url="https://github.com/jriguera/docker-rpi-mosquitto"
-LABEL maintainer="Jose Riguera <jriguera@gmail.com>"
-LABEL architecture="${ARCH}"
+LABEL org.opencontainers.image.title="docker-mosquitto"
+LABEL org.opencontainers.image.created="${TIME}}"
+LABEL org.opencontainers.image.base.name="${BASE}"
+LABEL org.opencontainers.image.description="Eclipse Mosquitto packed in a multi-arch container image based on alpine: https://mosquitto.org/"
+LABEL org.opencontainers.image.authors="Jose Riguera <jriguera@gmail.com>"
+LABEL org.opencontainers.image.url="${REPOSITORY}#readme"
+LABEL org.opencontainers.image.documentation="${REPOSITORY}#readme"
+LABEL org.opencontainers.image.source="${REPOSITORY}"
+LABEL org.opencontainers.image.version="${VERSION}-${APPVERSION}}"
+LABEL org.opencontainers.image.revision="${HASH}"
+LABEL org.opencontainers.image.vendor="jriguera"
+LABEL org.opencontainers.image.licenses="GPL-3"
+LABEL es.riguera.jose.container.service=mosquitto
+LABEL es.riguera.jose.container.port="${PORT}"
+LABEL es.riguera.jose.container.version="${VERSION}-${APPVERSION}"
+LABEL es.riguera.jose.container.appversion="${APPVERSION}"
+LABEL es.riguera.jose.container.repository="${REPOSITORY}"
+LABEL es.riguera.jose.container.hash="${HASH}"
 
-ENV MQTT_PATH="${DATADIR}"
-ENV MQTT_CONFIG="${CONFIGDIR}"
-ENV MQTT_LOG=stdout
-ENV MQTT_PERSISTENCE=true
-ENV MQTT_PORT_DEFAULT="${DEFAULTPORT}"
-ENV MQTT_PORT_TLS="${TLSPORT}"
-
+ENV C_DATADIR="${DATADIR}"
+ENV C_CONFIGDIR="${CONFIGDIR}"
+ENV C_ETCDIR="${ETCDIR}"
+ENV C_RUNDIR="${RUNDIR}"
+ENV C_USERNAME="${USER}"
+ENV C_GROUPNAME="${GROUP}"
+ENV PORT="${PORT}"
 ENV LANG=en_US.utf8
 ENV LC_ALL=C.UTF-8
 
-RUN set -xe                                                                 && \
-    apk -U upgrade                                                          && \
+RUN set -xe                                                                         && \
+    apk -U upgrade                                                                  && \
     # User/group
-    addgroup -g "${GUID}" -S mosquitto                                             && \
-    adduser -h "${DATADIR}" -D -G mosquitto -s /sbin/nologin -u "${UID}" mosquitto && \
+    addgroup -g "${GUID}" -S "${USER}"                                              && \
+    adduser -h "${DATADIR}" -D -G "${GROUP}" -s /sbin/nologin -u "${UID}" "${USER}" && \
     # Installing Alpine packages
     apk add --no-cache \
-        mosquitto~${VERSION} \
-        mosquitto-libs~${VERSION} \
-        mosquitto-clients~${VERSION} \
+        mosquitto~${APPVERSION} \
+        mosquitto-libs~${APPVERSION} \
+        mosquitto-clients~${APPVERSION} \
         ca-certificates \
         pwgen \
         su-exec \
@@ -54,31 +69,31 @@ RUN set -xe                                                                 && \
         net-tools \
         curl \
         bash \
-                                                                            && \
+                                                                                    && \
     # Timezone
-    cp "/usr/share/zoneinfo/${TZ}" /etc/localtime                           && \
-    echo "${TZ}" > /etc/timezone                                            && \
+    cp "/usr/share/zoneinfo/${TZ}" /etc/localtime                                   && \
+    echo "${TZ}" > /etc/timezone                                                    && \
     # clean up
-    rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/* /etc/mosquitto/*
-
+    rm -rf /tmp/* /var/tmp/* /var/cache/apk/* /var/cache/distfiles/* "${ETCDIR}"/*
 
 COPY *.sh /usr/local/bin/
-COPY etc /etc/mosquitto
+COPY etc "${ETCDIR}"
 
-RUN set -xe                                                                 && \
-    chmod a+x /usr/local/bin/*                                              && \
-    ln -s /usr/local/bin/mosquitto.sh /usr/local/bin/docker-entrypoint.sh   && \
-    ln -s /usr/local/bin/mosquitto.sh /docker-entrypoint.sh                 && \
-    ln -s /usr/local/bin/mosquitto.sh /run.sh                               && \
-    mkdir -p /docker-entrypoint-initdb.d                                    && \
-    mkdir -p "${DATADIR}"                                                   && \
-    mkdir -p "${CONFIGDIR}"                                                 && \
-    touch /etc/mosquitto/users                                              && \
-    chown -R mosquitto:mosquitto /etc/mosquitto "${DATADIR}" "${CONFIGDIR}"
+RUN set -xe                                                                         && \
+    chmod a+x /usr/local/bin/*                                                      && \
+    ln -s /usr/local/bin/mosquitto.sh /usr/local/bin/docker-entrypoint.sh           && \
+    ln -s /usr/local/bin/mosquitto.sh /docker-entrypoint.sh                         && \
+    ln -s /usr/local/bin/mosquitto.sh /run.sh                                       && \
+    ln -s /usr/local/bin/healthcheck.sh /healthcheck.sh                             && \
+    mkdir -p /docker-entrypoint-initdb.d                                            && \
+    mkdir -p "${DATADIR}" "${CONFIGDIR}" "${RUNDIR}"                                && \
+    chown -R ${USER}:${GROUP} "${ETCDIR}" "${DATADIR}" "${CONFIGDIR}" "${RUNDIR}"
 
 VOLUME "${CONFIGDIR}" "${DATADIR}"
-EXPOSE "${DEFAULTPORT}" "${TLSPORT}"
+EXPOSE "${PORT}"
+HEALTHCHECK --interval=30s --retries=2 --timeout=5s --start-period=30s CMD /healthcheck.sh
 
 ENTRYPOINT ["/run.sh"]
+
 # Define default command
-CMD ["mosquitto"]
+CMD ["mosquitto", "-c", "/etc/mosquitto/mosquitto.conf"]

@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  mosquitto:
+    build:
+      context: docker
+    image: mosquitto:latest
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+    - ./data:/mqtt
+    - ./config:/config
+    ports:
+    - 1883:1883
+    - 8883:8883
+    - 9001:9001
+    environment:
+      DEBUG: "false"
+      MQTT_USERS: "jose:hola pepe:adios"
+
+
+networks:
+    mosquitto:
+        name: mosquitto
+        driver: bridge
