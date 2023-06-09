@@ -60,7 +60,7 @@ jobs:
           HASH=$(git describe --all --long --dirty --abbrev=10 --tags --always)
           REPOSITORY="git@github.com:${GITHUB_REPOSITORY}.git"
           source VERSIONS
-          [[ -z "$META_VERSION" ]] || [[ "$META_VERSION" == sha-* ]] && VERSION="$META_VERSION"
+          [[ -n "$META_VERSION" ]] && [[ "$META_VERSION" != sha-* ]] && VERSION="$META_VERSION"
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "TIME=${TIME}" >> $GITHUB_ENV
           echo "HASH=${HASH}" >> $GITHUB_ENV
