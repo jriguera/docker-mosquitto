@@ -17,6 +17,7 @@ permissions:
 
 jobs:
   build:
+    name: Build docker image and push to GCR
     runs-on: ubuntu-latest
     steps:
       # Get the repository's code
@@ -59,15 +60,16 @@ jobs:
           HASH=$(git describe --all --long --dirty --abbrev=10 --tags --always)
           REPOSITORY="git@github.com:${GITHUB_REPOSITORY}.git"
           source VERSIONS
-          [[ -n "$META_VERSION" ]] || [[ "$META_VERSION" == sha-* ]] && VERSION="$META_VERSION"
+          [[ -z "$META_VERSION" ]] || [[ "$META_VERSION" == sha-* ]] && VERSION="$META_VERSION"
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
           echo "TIME=${TIME}" >> $GITHUB_ENV
           echo "HASH=${HASH}" >> $GITHUB_ENV
           echo "REPOSITORY=${REPOSITORY}" >> $GITHUB_ENV
 
       - name: Build and push to GitHub Container Registry
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v4
         with:
+          push: true
           context: ${{ env.DOCKER_BUILD_DIR }}
           platforms: linux/amd64,linux/arm/v7,linux/arm64/v8
           push: ${{ github.event_name != 'pull_request' }}
