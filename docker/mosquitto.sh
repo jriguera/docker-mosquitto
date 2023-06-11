@@ -32,8 +32,7 @@ MQTT_USE_USERNAME_AS_CLIENTID="${MQTT_USE_USERNAME_AS_CLIENTID:-false}"
 MQTT_ALLOW_NO_CLIENTID="${MQTT_ALLOW_NO_CLIENTID:-true}"
 
 # Define a list of user:password list separated by spaces
-MQTT_USERS=(${MQTT_USERS:-})
-
+MQTT_USERS_LIST=(${MQTT_USERS:-})
 
 # Usage: file_env VAR [DEFAULT]
 #    ie: file_env 'XYZ_DB_PASSWORD' 'example'
@@ -72,51 +71,68 @@ then
     exec su-exec ${MOSQUITTO_USER} "${BASH_SOURCE}" "$@"
 fi
 
-# if no configfile is provided, generate one based on the environment variables
-if [[ -r "${MOSQUITTO_INPUT_CONFIG_DIR}/mosquitto.conf" ]]
+if [[ ${1} == 'mosquitto' ]]
 then
-    echo "* Copying configuration from ${MOSQUITTO_INPUT_CONFIG_DIR}/mosquitto.conf ..."
-    rm -rf "${MOSQUITTO_FINAL_CONFIG_DIR}"/*
-    cp -v "${MOSQUITTO_INPUT_CONFIG_DIR}"/* "${MOSQUITTO_FINAL_CONFIG_DIR}"/
-else
-    echo "* Generating default configuration from environment variables ..."
-    render_template "${MOSQUITTO_FINAL_TEMPLATE_CONFIG}" > "${MOSQUITTO_FINAL_CONFIG_DIR}/mosquitto.conf"
-fi
-
-if [[ ! -r "${MOSQUITTO_INCLUDE_DIR}/default.conf" ]]
-then
-    echo "* Generating default listener from environment variables ..."
-    cat <<-EOF > "${MOSQUITTO_INCLUDE_DIR}/default.conf"
-		listener ${MQTT_PORT:-1883} 0.0.0.0
-		allow_anonymous ${MQTT_ALLOW_ANONYMOUS:-false}
-		password_file ${MOSQUITTO_USERS_FILE}
-		allow_zero_length_clientid ${MQTT_ALLOW_NO_CLIENTID:-true}
-		auto_id_prefix generated-
-		max_connections ${MQTT_MAX_CONNECTIONS:-500}
-		max_keepalive ${MQTT_MAX_KEEPALIVE:-65535}
-		set_tcp_nodelay ${MQTT_SET_TCP_NODELAY:-true}
-		EOF
-else
-    echo "* Default listener already defined in "${MOSQUITTO_INCLUDE_DIR}/default.conf", skipping..."
-fi
-
-if [[ ! -r "${MQTT_USERS_FILE}" ]]
-then
-    if [[ "${#MQTT_USERS[@]}" -eq 0 ]] && ! [[ "${MQTT_ALLOW_ANONYMOUS}" =~ (true|TRUE|True) ]]
+    # if no configfile is provided, generate one based on the environment variables
+    if [[ -r "${MOSQUITTO_INPUT_CONFIG_DIR}/mosquitto.conf" ]]
     then
-        echo "* Warning: No MQTT_USERS variable with users and password defined, and MQTT_ALLOW_ANONYMOUS is not true"
-        userpass="default:$(pwgen -s -1 10)"
-        echo "* Generated a default user and password for the clients to connect: <${userpass}>"
-        MQTT_USERS+=("${userpass}")
+        echo "* Copying configuration from ${MOSQUITTO_INPUT_CONFIG_DIR}/mosquitto.conf ..."
+        rm -rf "${MOSQUITTO_FINAL_CONFIG_DIR}"/*
+        cp -v "${MOSQUITTO_INPUT_CONFIG_DIR}"/* "${MOSQUITTO_FINAL_CONFIG_DIR}"/
+    else
+        echo "* Generating default configuration from environment variables ..."
+        render_template "${MOSQUITTO_FINAL_TEMPLATE_CONFIG}" > "${MOSQUITTO_FINAL_CONFIG_DIR}/mosquitto.conf"
     fi
-    touch "${MOSQUITTO_USERS_FILE}"
-    for item in ${MQTT_USERS[@]}
-    do
-        userpass=(${item//:/ })
-        echo "* Allowing user "${userpass[0]}" and its password ..."
-        mosquitto_passwd -b "${MOSQUITTO_USERS_FILE}" "${userpass[0]}" "${userpass[1]}"
-    done
-    echo "* Generated users file in ${MOSQUITTO_USERS_FILE}"
+
+    if [[ ! -r "${MOSQUITTO_INCLUDE_DIR}/default.conf" ]]
+    then
+        echo "* Generating default listener from environment variables ..."
+        cat <<-EOF > "${MOSQUITTO_INCLUDE_DIR}/default.conf"
+			listener ${MQTT_PORT:-1883} 0.0.0.0
+			allow_anonymous ${MQTT_ALLOW_ANONYMOUS:-false}
+			password_file ${MOSQUITTO_USERS_FILE}
+			allow_zero_length_clientid ${MQTT_ALLOW_NO_CLIENTID:-true}
+			auto_id_prefix generated-
+			max_connections ${MQTT_MAX_CONNECTIONS:-500}
+			max_keepalive ${MQTT_MAX_KEEPALIVE:-65535}
+			set_tcp_nodelay ${MQTT_SET_TCP_NODELAY:-true}
+			EOF
+    else
+        echo "* Default listener already defined in "${MOSQUITTO_INCLUDE_DIR}/default.conf", skipping..."
+    fi
+
+    if [[ ! -r "${MQTT_USERS_FILE}" ]]
+    then
+        if [[ "${#MQTT_USERS_LIST[@]}" -eq 0 ]] && ! [[ "${MQTT_ALLOW_ANONYMOUS}" =~ (true|TRUE|True) ]]
+        then
+            echo "* Warning: No MQTT_USERS variable with users and password defined, and MQTT_ALLOW_ANONYMOUS is not true"
+            userpass="default:$(pwgen -s -1 10)"
+            echo "* Generated a default user and password for the clients to connect: <${userpass}>"
+            MQTT_USERS_LIST+=("${userpass}")
+        fi
+        touch "${MOSQUITTO_USERS_FILE}"
+        for item in ${MQTT_USERS_LIST[@]}
+        do
+            userpass=(${item//:/ })
+            echo "* Allowing user "${userpass[0]}" and its password ..."
+            mosquitto_passwd -b "${MOSQUITTO_USERS_FILE}" "${userpass[0]}" "${userpass[1]}"
+        done
+        echo "* Generated users file in ${MOSQUITTO_USERS_FILE}"
+    fi
 fi
+
+# Load dumps or execute other files
+for f in /docker-entrypoint-initdb.d/*
+do
+	case "${f}" in
+		*.sh)
+			echo "* Running ${f} ..."
+			( . "${f}" )
+		;;
+		*)
+			echo "* Ignoring ${f} ..."
+		;;
+	esac
+done
 
 exec "$@"

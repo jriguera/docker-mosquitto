@@ -8,7 +8,7 @@ set -e
 NAME="mosquitto"
 DOCKER_TAG="jriguera/$NAME"
 RELEASE="mosquitto"
-DESCRIPTION="Docker image to run Mosquitto in a Raspberry Pi"
+DESCRIPTION="Docker image to run Mosquitto "
 GITHUB_REPO="jriguera/docker-rpi-mosquitto"
 
 ###
