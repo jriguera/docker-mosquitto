@@ -7,7 +7,6 @@ NAME="mosquitto"
 HASH=$(git describe --all --long --dirty --abbrev=10 --tags --always)
 REPOSITORY=$(git remote get-url --push origin)
 TIME=$(TZ=UTC date '+%FT%T.%N%:z')
-BASE=alpine:3.22
 TZ=$(timedatectl | awk '/Time zone:/{ print $3 }')
 
 source VERSIONS
@@ -15,7 +14,6 @@ source VERSIONS
 pushd docker
     $DOCKER \
       --build-arg REPOSITORY="${REPOSITORY}" \
-      --build-arg BASE="${BASE}" \
       --build-arg VERSION="${VERSION}" \
       --build-arg APPVERSION="${APPVERSION}" \
       --build-arg HASH="${HASH}" \

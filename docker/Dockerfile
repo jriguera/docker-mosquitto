@@ -2,8 +2,7 @@
 # docker build . -t mosquitto
 # docker run --name mosquitto -v $(pwd)/datadir:/mqtt  mosquitto
 
-ARG BASE=alpine:3.22
-FROM $BASE
+FROM alpine:3.22
 
 ARG VERSION=1
 ARG APPVERSION=2.0
@@ -16,15 +15,15 @@ ARG CONFIGDIR=/config
 ARG ETCDIR=/etc/mosquitto
 ARG RUNDIR=/run/mosquitto
 ARG PORT=1883
-ARG UID=999
-ARG GUID=999
+ARG UID=997
+ARG GUID=997
 ARG TZ=UTC
 ARG USER=mosquitto
 ARG GROUP=mosquitto
 
 LABEL org.opencontainers.image.title="docker-mosquitto"
 LABEL org.opencontainers.image.created="${TIME}}"
-LABEL org.opencontainers.image.base.name="${BASE}"
+LABEL org.opencontainers.image.base.name="alpine"
 LABEL org.opencontainers.image.description="Eclipse Mosquitto packed in a multi-arch container image based on alpine: https://mosquitto.org/"
 LABEL org.opencontainers.image.authors="Jose Riguera <jriguera@gmail.com>"
 LABEL org.opencontainers.image.url="${REPOSITORY}#readme"
