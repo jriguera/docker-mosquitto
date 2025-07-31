@@ -7,7 +7,7 @@ set -eo pipefail
 PUID="${PUID:-$C_USERNAME}"
 PGID="${PGID:-$C_GROUPNAME}"
 
-MOSQUITTO_USER=$(id -n -u $PUID)
+MOSQUITTO_USER=$(getent passwd $PUID | cut -d : -f 1)
 MOSQUITTO_DATA="${C_DATADIR:-/mtqq}"
 MOSQUITTO_INPUT_CONFIG_DIR="${C_CONFIGDIR:-/config}"
 MOSQUITTO_FINAL_CONFIG_DIR="${C_ETCDIR:-/etc/mosquitto}"
