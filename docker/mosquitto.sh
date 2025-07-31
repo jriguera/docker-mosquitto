@@ -4,12 +4,13 @@ set -eo pipefail
 
 # Defined in the Dockerfile but
 # if undefined, populate environment variables with sane defaults
+PUID="${PUID:-$C_USERNAME}"
+PGID="${PGID:-$C_GROUPNAME}"
+
 MOSQUITTO_DATA="${C_DATADIR:-/mtqq}"
 MOSQUITTO_INPUT_CONFIG_DIR="${C_CONFIGDIR:-/config}"
 MOSQUITTO_FINAL_CONFIG_DIR="${C_ETCDIR:-/etc/mosquitto}"
 MOSQUITTO_RUNDIR="${C_RUNDIR:-/run/mosquitto}"
-PUID="${C_USERNAME:-mosquitto}"
-PGID="${C_GROUPNAME:-mosquitto}"
 
 MOSQUITTO_INCLUDE_DIR="${MOSQUITTO_INCLUDE_DIR:-${MOSQUITTO_FINAL_CONFIG_DIR}/conf.d}"
 MOSQUITTO_FINAL_TEMPLATE_CONFIG="${MOSQUITTO_FINAL_TEMPLATE_CONFIG:-${MOSQUITTO_FINAL_CONFIG_DIR}/mosquitto.conf.template}"
