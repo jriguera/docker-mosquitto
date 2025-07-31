@@ -65,12 +65,12 @@ render_template() {
 # If command starts with an option, prepend mosquitto
 [[ ${1:0:1} = '-' ]] && set -- mosquitto "$@"
 
-# allow the container to be started with `--user`
-if [[ ${1} == 'mosquitto' ]] && [[ $(id -u) -eq 0 ]]
-then
-    chown -R "${PUID}:${PGID}" "${MOSQUITTO_DATA}" "${MOSQUITTO_FINAL_CONFIG_DIR}" "${MOSQUITTO_RUNDIR}"
-    exec su-exec ${PUID} "${BASH_SOURCE}" "$@"
-fi
+# # allow the container to be started with `--user`
+# if [[ ${1} == 'mosquitto' ]] && [[ $(id -u) -eq 0 ]]
+# then
+#     chown -R "${PUID}:${PGID}" "${MOSQUITTO_DATA}" "${MOSQUITTO_FINAL_CONFIG_DIR}" "${MOSQUITTO_RUNDIR}"
+#     exec su-exec ${PUID} "${BASH_SOURCE}" "$@"
+# fi
 
 if [[ ${1} == 'mosquitto' ]]
 then
