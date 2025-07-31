@@ -111,6 +111,7 @@ then
             MQTT_USERS_LIST+=("${userpass}")
         fi
         touch "${MOSQUITTO_USERS_FILE}"
+        chmod 0700 "${MOSQUITTO_USERS_FILE}"
         for item in ${MQTT_USERS_LIST[@]}
         do
             userpass=(${item//:/ })
