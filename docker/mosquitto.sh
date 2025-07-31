@@ -7,6 +7,7 @@ set -eo pipefail
 PUID="${PUID:-$C_USERNAME}"
 PGID="${PGID:-$C_GROUPNAME}"
 
+MOSQUITTO_USER=$(id -n -u $PUID)
 MOSQUITTO_DATA="${C_DATADIR:-/mtqq}"
 MOSQUITTO_INPUT_CONFIG_DIR="${C_CONFIGDIR:-/config}"
 MOSQUITTO_FINAL_CONFIG_DIR="${C_ETCDIR:-/etc/mosquitto}"
@@ -64,8 +65,6 @@ render_template() {
 
 # If command starts with an option, prepend mosquitto
 [[ ${1:0:1} = '-' ]] && set -- mosquitto "$@"
-
-chown -R "${PUID}:${PGID}" "${MOSQUITTO_DATA}" "${MOSQUITTO_FINAL_CONFIG_DIR}" "${MOSQUITTO_RUNDIR}"
 
 if [[ ${1} == 'mosquitto' ]]
 then
@@ -131,5 +130,7 @@ do
 		;;
 	esac
 done
+
+chown -R "${PUID}:${PGID}" "${MOSQUITTO_DATA}" "${MOSQUITTO_FINAL_CONFIG_DIR}" "${MOSQUITTO_RUNDIR}"
 
 exec "$@"

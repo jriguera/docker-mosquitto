@@ -1,7 +1,7 @@
 # Configuration rendered from env vars
 log_timestamp false
 pid_file ${MOSQUITTO_RUNDIR}/mosquitto.pid
-user ${PUID:-0}
+user ${MOSQUITTO_USER:-mosquitto}
 log_dest ${MQTT_LOG_DST:-stdout}
 $(for t in "${MQTT_LOG_LEVEL[@]}"; do echo "log_type ${t}"; done)
 connection_messages ${MQTT_LOG_CONNECTIONS:-true}
