@@ -72,6 +72,8 @@ render_template() {
 #     exec su-exec ${PUID} "${BASH_SOURCE}" "$@"
 # fi
 
+chown -R "${PUID}:${PGID}" "${MOSQUITTO_DATA}" "${MOSQUITTO_FINAL_CONFIG_DIR}" "${MOSQUITTO_RUNDIR}"
+
 if [[ ${1} == 'mosquitto' ]]
 then
     # if no configfile is provided, generate one based on the environment variables
