@@ -7,9 +7,9 @@ set -eo pipefail
 MOSQUITTO_DATA="${C_DATADIR:-/mtqq}"
 MOSQUITTO_INPUT_CONFIG_DIR="${C_CONFIGDIR:-/config}"
 MOSQUITTO_FINAL_CONFIG_DIR="${C_ETCDIR:-/etc/mosquitto}"
-MOSQUITTO_USER="${C_USERNAME:-mosquitto}"
-MOSQUITTO_GROUP="${C_GROUPNAME:-mosquitto}"
 MOSQUITTO_RUNDIR="${C_RUNDIR:-/run/mosquitto}"
+PUID="${C_USERNAME:-mosquitto}"
+PGID="${C_GROUPNAME:-mosquitto}"
 
 MOSQUITTO_INCLUDE_DIR="${MOSQUITTO_INCLUDE_DIR:-${MOSQUITTO_FINAL_CONFIG_DIR}/conf.d}"
 MOSQUITTO_FINAL_TEMPLATE_CONFIG="${MOSQUITTO_FINAL_TEMPLATE_CONFIG:-${MOSQUITTO_FINAL_CONFIG_DIR}/mosquitto.conf.template}"
@@ -67,8 +67,8 @@ render_template() {
 # allow the container to be started with `--user`
 if [[ ${1} == 'mosquitto' ]] && [[ $(id -u) -eq 0 ]]
 then
-    chown -R "${MOSQUITTO_USER}:${MOSQUITTO_GROUP}" "${MOSQUITTO_DATA}" "${MOSQUITTO_FINAL_CONFIG_DIR}" "${MOSQUITTO_RUNDIR}"
-    exec su-exec ${MOSQUITTO_USER} "${BASH_SOURCE}" "$@"
+    chown -R "${PUID}:${PGID}" "${MOSQUITTO_DATA}" "${MOSQUITTO_FINAL_CONFIG_DIR}" "${MOSQUITTO_RUNDIR}"
+    exec su-exec ${PUID} "${BASH_SOURCE}" "$@"
 fi
 
 if [[ ${1} == 'mosquitto' ]]

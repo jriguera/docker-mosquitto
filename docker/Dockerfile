@@ -2,7 +2,7 @@
 # docker build . -t mosquitto
 # docker run --name mosquitto -v $(pwd)/datadir:/mqtt  mosquitto
 
-ARG BASE=alpine:3.18
+ARG BASE=alpine:3.22
 FROM $BASE
 
 ARG VERSION=1
@@ -16,8 +16,8 @@ ARG CONFIGDIR=/config
 ARG ETCDIR=/etc/mosquitto
 ARG RUNDIR=/run/mosquitto
 ARG PORT=1883
-ARG UID=1000
-ARG GUID=1000
+ARG UID=999
+ARG GUID=999
 ARG TZ=UTC
 ARG USER=mosquitto
 ARG GROUP=mosquitto
